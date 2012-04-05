@@ -11,7 +11,7 @@
 	// private variables
 	var debug = true,
 		maxFamily = 4,
-		maxAmmo = 99;
+		maxAmmo = 50;
 		maxZombiesPerPerson = 4;
 	
 	// private functions
@@ -44,7 +44,6 @@
 		cricketbat : {name : "cricket bat", type : 'melee'},
 		revolver : {name : "revolver", type : 'ranged', maxAmmo : 6}
 	});
-	
 	ns.DAMAGE_LOCATION = Object.freeze({
 		body : 0,
 		head : 1
@@ -69,7 +68,8 @@
 				break;
 		}
 		this.functional = functional || (Math.floor(Math.random() * Object.keys(ns.WEAPON_TYPE).length) === 1) ? true : false;
-		
+	
+		var isBroken = function () {return this.functional;};
 		debugLogObjectProperties(this, 'weapon');
 	};
 	
@@ -81,9 +81,12 @@
 		this.weapons = [];
 		
 		// functions
-		this.loadWeapon = function (name) {
+		this.hasWeapon = function (weaponName) {
+			return (getIndexByName(weaponName) !== -1);
+		}
+		this.loadWeapon = function (weaponName) {
 			var requiredAmmo,
-				index = getIndexByName(this.weapons, name),
+				index = getIndexByName(this.weapons, weaponName),
 				weapon = this.weapons[index];
 			if (undefined === weapon || weapon.maxAmmo === undefined) return;
 
@@ -108,8 +111,39 @@
 				this.loadWeapon(weaponType.name);
 			}
 		};
+		this.dropWeapon = function (weaponName) {
+			var index = getIndexByName(weaponName);
+			console.log(this.name, "dropped their broken", weaponName);
+			this.weapons.splice(index, 1);
+		};
 		this.attack = function (weaponName, zombie) {
-			throw new Error("Function not implemented!");
+			var weapon = this.weapons[getIndexByName(weaponName)],
+				// TODO: Implement a more robust method of attack
+				success = (Math.floor(Math.random() * 2) === 1) ? true : false;
+			if (zombie.killed) { // should never get this
+				console.log("The zombie that you are attacking is already dead");
+				return false;
+			} else {
+				if (weapon.isBroken()) {
+					console.log("The ", weapon.name, "is broken. You cannot attack with it.");
+					return false;
+				}
+			} else {
+				if (weapon.type === 'ranged' && weapon.currentAmmo < 1) {
+					this.loadWeapon(weaponName);
+					return false;
+				}
+			}
+			if (success) {
+				if (Math.floor(Math.random() * Object.keys(ns.DAMAGE_LOCATION).length) === 1) {
+					zombie.killed = true;
+					zombies.unshift;
+					if (weapon.type === 'ranged') weapon.currentAmmo--;
+				}
+			}
+			// did the weapon break during the attack?
+			if (Math.floor(Math.random() * 100) <= 20) weapon.functional = false;
+			return success;
 		};
 		
 		debugLogObjectProperties(this, 'player');
@@ -130,6 +164,9 @@ try {
 		zombies.push(new sdi.zombie());
 	}
 	console.log("Number of Zombies:", zombies.length);
+	for (var i = 0; i < zombies.length; i++) {
+		if
+	}
 } catch(e) {
 	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);
 }

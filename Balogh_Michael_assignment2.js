@@ -9,28 +9,33 @@
 // define namespace and protect undefined
 (function(ns, undefined) {
 	// private variables
-	var _debug = true,
+	var debug = true,
 		maxFamily = 4,
 		maxZombiesPerPerson = 4;
 	
 	// private functions
-	// var funcname = function (parameters) {};
-	Object.log = function (object) {
-		for (var i in object) {
-			if (object.hasOwnProperty(i) && (typeof(object[i]) !== 'function')) {
-				console.log(i, ":", object[i]);
-			}
+	var debugLog = function (object, description) {
+		if (debug) {
+			this.description = description || object['name'];
+			console.log("***", this.description.toUpperCase(), "***");
+			for (var i in object) {
+				if (object.hasOwnProperty(i) && (typeof(object[i]) !== 'function')) {
+					console.log(i, ":", object[i]);
+				}
+			}	
 		}
 	};
-	
+		
 	// public variables
 	ns.letsKillZombies = true,
-	ns.numZombies = Math.floor(Math.random() * (ns.totalFamily * Math.floor(Math.random() * (maxZombiesPerPerson /* max per (4) - min per (1) + 1 */)))) + 1;
+	ns.numZombies = Math.floor(Math.random() * (ns.totalFamily * Math.floor(Math.random() * (maxZombiesPerPerson)))) + 1;
 	
+	// public "enums"
 	ns.WEAPON_TYPE = Object.freeze({
 		cricketbat : {name : "cricket bat"},
 		revolver : {name : "revolver", maxAmmo: 6}
 	});
+	
 	ns.DAMAGE_LOCATION = Object.freeze({
 		miss : 0,
 		body : 1,
@@ -40,12 +45,9 @@
 	// public functions
 	ns.player = function (name, numFamily) {
 		this.name = name,
-		this.numFamily = numFamily || Math.floor(Math.random() * maxFamily /* maxFamily - player + 1 */);
+		this.numFamily = numFamily || Math.floor(Math.random() * maxFamily) +  1;
 		
-		if (_debug) {
-			console.log("*** PLAYER ***");
-			Object.log(this);
-		}
+		debugLog(this, 'player');
 	};
 	
 	ns.weapon = function (type, functional) {
@@ -56,25 +58,15 @@
 			case ns.WEAPON_TYPE.revolver:
 				this.name = ns.WEAPON_TYPE.revolver.name;
 				this.maxAmmo = ns.WEAPON_TYPE.revolver.maxAmmo;
-				this.currentAmmo = Math.floor(Math.random() * this.maxAmmo /* maxAmmo - 1 min + 1 */) + 1;
+				this.currentAmmo = Math.floor(Math.random() * this.maxAmmo) + 1;
 				break;
 			default:
 				throw new Error("Undefined weapon is undefined!")
 				break;
 		}
-		this.functional = functional;
+		this.functional = functional || (Math.floor(Math.random() * Object.keys(ns.WEAPON_TYPE).length) === 1) ? true : false;
 		
-		this.log = function() {
-			for (var i in this) {
-				if (this.hasOwnProperty(i) && typeof(this[i]) !== 'function') {
-					console.log(i, ":", this[i]);
-				}
-			}
-		};
-		if (_debug) {
-			console.log("*** WEAPON ***");
-			Object.log(this);
-		}
+		debugLog(this, 'weapon');
 	};
 
 	ns.zombie = function() {
@@ -84,14 +76,15 @@
 
 try {
 	var player = new sdi.player("Shawn"),
-	var revolver = new sdi.weapon(sdi.WEAPON_TYPE.revolver, true),
-		cricketbat = new sdi.weapon(sdi.WEAPON_TYPE.cricketbat, true),
+		revolver = new sdi.weapon(sdi.WEAPON_TYPE.revolver),
+		cricketbat = new sdi.weapon(sdi.WEAPON_TYPE.cricketbat),
 		zombies = [];
 	
 	for (var i = 0; i < sdi.numZombies; i++) {
 		zombies.push(new sdi.zombie());
 	}
 	console.log("Number of Zombies:", zombies.length);
+	console.log(Object.keys(sdi.WEAPON_TYPE).length);
 } catch(e) {
 	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);
 }

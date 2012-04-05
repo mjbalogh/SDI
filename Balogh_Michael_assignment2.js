@@ -5,7 +5,7 @@
 	Date: 04/04/2012
 	Note: Continuation of Zombie story from 1st assignment
 */
-var debug = false,
+var debug = true,
 	maxFamily = 4,
 	maxAmmo = 99,
 	maxZombiesPerPerson = 4,
@@ -23,9 +23,14 @@ var debug = false,
 			}	
 		}
 	};
+	var debugLog = function (object, description) {
+		if (debug) {
+			console.log(object, ':', description)
+		}
+	};
 	var getRandomBool = function (range, limit) {
 		var cutoff = limit || range / 2;
-		return (Math.floor(Math.random() * 100) >= cutoff ? true : false);
+		return ((Math.floor(Math.random() * range) >= cutoff) ? true : false);
 	};
 	var createZombies = function () {
 		for (var i = 0; i < numZombies; i++) {
@@ -49,6 +54,7 @@ var debug = false,
 			this.reload = function () {
 				var requiredAmmo = this.maxAmmo - this.currentAmmo;
 				if (player.numAmmo < 1) {
+					debugLog(player.numAmmo, "weapon.reload, player ammo")
 					console.log(player.name, "asks, \"What, no more ammo?\"");
 					return -1;
 				} else {
@@ -84,35 +90,44 @@ var debug = false,
 				return undefined;
 			}
 		};
-		this.loadWeapon = function (speak) {
-			if (undefined === this.rangedWeapon) {
-				if (speak){
+		this.loadWeapon = function (quiet) {
+			if (!this.rangedWeapon.functional) {
+				if (!quiet){
 					console.log(this.name, "says, \"All this ammo, and nothing to use it in.\"");
+					return;
 				}
 			}
-			if (speak) {
+			if (!quiet) {
 				console.log(this.name, "says, \"Reloading.\"");
+				this.rangedWeapon.reload();
 			}
 		};
 		this.attack = function (weapon, zombie) {
-			var success = getRandomBool(),
-				headshot = getRandomBool(),
-				weaponBroken = !getRandomBool(20);
+			var success = getRandomBool(50),
+				headshot = getRandomBool(50),
+				weaponBroken = !getRandomBool(100, 10);
 			if (undefined === weapon || undefined === zombie) return false;
+			debugLog(player.rangedWeapon === weapon, "use player's ranged weapon")
 			if (player.rangedWeapon === weapon) {
-				if (!weapon.fireRound()) {
+				var fired = weapon.fireRound();
+				if (!fired) {
 					this.loadWeapon();
 					return false;
 				}
 			}
+			debugLog(success, "success");
 			if (success) {
+				debugLog(headshot, "headshot")
 				if (headshot) {
 					console.log(this.name, "shouts, \"Boom, headshot!\"");
 					zombies.shift();
 				} else {
 					console.log(this.name, "moans, \"Awwww... not again.\"");
 				}
+			} else {
+				console.log("Why don't you die... again.")
 			}
+			debugLog(weaponBroken, "weaponBroken");
 			if (weaponBroken) {
 				weapon.functional = false;
 				console.log(this.name, "shouts, \"Oh, c'mon!!!\" as his weapon breaks.");
@@ -125,9 +140,10 @@ var debug = false,
 try {
 	var player = new player("Shawn");
 	if (player.rangedWeapon.currentAmmo < player.rangedWeapon.maxAmmo) {
-		player.loadWeapon(false);
+		player.loadWeapon(true);
 	}
 	createZombies();
+	debugLog(zombies.length, "number of zombies in array. number defined" + numZombies);
 	for (var z in zombies) {
 		var weapon = player.chooseWeapon();
 		if (undefined === weapon) break;		
@@ -135,7 +151,9 @@ try {
 		player.attack(weapon, z);
 	}
 	if (zombies.length > 0) {
-		console.log(player.name, "needs to locate more weapons before he can save his family!!!")
+		console.log(player.name, "needs to locate more weapons before he can save his family!!!");
+	} else {
+		console.log(player.name, "has just saved his family (for the moment)!");
 	}
 } catch(e) {
 	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);

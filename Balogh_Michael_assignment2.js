@@ -11,10 +11,11 @@
 	// private variables
 	var debug = true,
 		maxFamily = 4,
+		maxAmmo = 99;
 		maxZombiesPerPerson = 4;
 	
 	// private functions
-	var debugLog = function (object, description) {
+	var debugLogObjectProperties = function (object, description) {
 		if (debug) {
 			this.description = description || object['name'];
 			console.log("***", this.description.toUpperCase(), "***");
@@ -25,39 +26,42 @@
 			}	
 		}
 	};
+	var getIndexByName = function (array, name) {
+		var len = array.length;
+		for (var i = 0; i < len; i++) {
+			var obj = array[i];
+			if (undefined !== obj.name && name.toUpperCase() === obj.name.toUpperCase()) return i;
+		}
+		return -1;
+	};
 		
 	// public variables
 	ns.letsKillZombies = true,
-	ns.numZombies = Math.floor(Math.random() * (ns.totalFamily * Math.floor(Math.random() * (maxZombiesPerPerson)))) + 1;
+	ns.numZombies = Math.floor(Math.random() * (maxFamily * Math.floor(Math.random() * maxZombiesPerPerson))) + 1;
 	
 	// public "enums"
 	ns.WEAPON_TYPE = Object.freeze({
-		cricketbat : {name : "cricket bat"},
-		revolver : {name : "revolver", maxAmmo: 6}
+		cricketbat : {name : "cricket bat", type : 'melee'},
+		revolver : {name : "revolver", type : 'ranged', maxAmmo : 6}
 	});
 	
 	ns.DAMAGE_LOCATION = Object.freeze({
-		miss : 0,
-		body : 1,
-		head : 2
+		body : 0,
+		head : 1
 	});
 	
 	// public functions
-	ns.player = function (name, numFamily) {
-		this.name = name,
-		this.numFamily = numFamily || Math.floor(Math.random() * maxFamily) +  1;
-		
-		debugLog(this, 'player');
-	};
-	
+	// *** WEAPON ***
 	ns.weapon = function (type, functional) {
 		switch (type) {
 			case ns.WEAPON_TYPE.cricketbat:
-				this.name = ns.WEAPON_TYPE.cricketbat.name;
+				this.name = type.name;
+				this.range = type.type;
 				break;
 			case ns.WEAPON_TYPE.revolver:
-				this.name = ns.WEAPON_TYPE.revolver.name;
-				this.maxAmmo = ns.WEAPON_TYPE.revolver.maxAmmo;
+				this.name = type.name;
+				this.range = type.type;
+				this.maxAmmo = type.maxAmmo;
 				this.currentAmmo = Math.floor(Math.random() * this.maxAmmo) + 1;
 				break;
 			default:
@@ -66,9 +70,51 @@
 		}
 		this.functional = functional || (Math.floor(Math.random() * Object.keys(ns.WEAPON_TYPE).length) === 1) ? true : false;
 		
-		debugLog(this, 'weapon');
+		debugLogObjectProperties(this, 'weapon');
 	};
+	
+	// *** PLAYER ***
+	ns.player = function (name, numFamily) {
+		this.name = name,
+		this.numFamily = numFamily || Math.floor(Math.random() * maxFamily) +  1,
+		this.ammo = Math.floor(Math.random() * maxAmmo) + 1;
+		this.weapons = [];
+		
+		// functions
+		this.loadWeapon = function (name) {
+			var requiredAmmo,
+				index = getIndexByName(this.weapons, name),
+				weapon = this.weapons[index];
+			if (undefined === weapon || weapon.maxAmmo === undefined) return;
 
+			console.log(this.name, "says \"Reloading.\"");
+			requiredAmmo = weapon.maxAmmo - weapon.currentAmmo;
+			this.ammo -= requiredAmmo;
+			weapon.currentAmmo += requiredAmmo;
+		};
+		this.addWeapon = function (weaponType, functional) {
+			var index = getIndexByName(this.weapons, weaponType.name);
+			if (-1 === index) {
+				this.weapons.push(new ns.weapon(weaponType, functional));
+			} else {
+				if (!this.weapons[index].functional) {
+					this.ammo += this.weapons[index].currentAmmo;
+					this.weapons[index] = new ns.weapon(weaponType, functional);
+				} else {
+					this.weapons.push(new ns.weapon(weaponType, functional));
+				}
+			}
+			if ('ranged' === weaponType.type) {
+				this.loadWeapon(weaponType.name);
+			}
+		};
+		this.attack = function (weaponName, zombie) {
+			throw new Error("Function not implemented!");
+		};
+		
+		debugLogObjectProperties(this, 'player');
+	};
+	
 	ns.zombie = function() {
 		this.killed = false;
 	};
@@ -76,15 +122,14 @@
 
 try {
 	var player = new sdi.player("Shawn"),
-		revolver = new sdi.weapon(sdi.WEAPON_TYPE.revolver),
-		cricketbat = new sdi.weapon(sdi.WEAPON_TYPE.cricketbat),
 		zombies = [];
+	player.addWeapon(sdi.WEAPON_TYPE.revolver, true);
+	player.addWeapon(sdi.WEAPON_TYPE.cricketbat, true);
 	
 	for (var i = 0; i < sdi.numZombies; i++) {
 		zombies.push(new sdi.zombie());
 	}
 	console.log("Number of Zombies:", zombies.length);
-	console.log(Object.keys(sdi.WEAPON_TYPE).length);
 } catch(e) {
 	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);
 }

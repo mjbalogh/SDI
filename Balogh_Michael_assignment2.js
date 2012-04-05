@@ -123,15 +123,15 @@ var player = function (name, numFamily) {
 				console.log(this.name, "shouts, \"Boom, headshot!\"");
 				zombies.shift();
 			} else {
-				console.log(this.name, "repeats, \"Need to hit them in the head\" to himself.");
+				console.log(this.name, "repeats, \"Need to hit them in the head\" to themself.");
 			}
 		} else {
-			console.log(this.name, "says \"Why don't you die... again\" when he misses.")
+			console.log(this.name, "says \"Why don't you die... again\" when they misses.")
 		}
 		debugLog(weaponBroken, "weaponBroken");
 		if (weaponBroken) {
 			weapon.functional = false;
-			console.log(this.name, "shouts, \"Oh, c'mon!!!\" as his", weapon.name, "breaks.");
+			console.log(this.name, "shouts, \"Oh, c'mon!!!\" as their", weapon.name, "breaks.");
 		}
 		return success;
 	}
@@ -143,33 +143,34 @@ var sayIntro = function (text) {
 };
 
 var multiples = function(number, strSingular) {
-	return (number === 1) ? strSingular : strSingular + "s";
+	return (Math.floor(number === 1)) ? strSingular : strSingular + "s";
 };
 var attackZombies = function (zombies) {
 	while (zombies.length > 0) {
 		var weapon = player.chooseWeapon();
 		if (undefined === weapon) break;
-		console.log (player.name, "attacks a zombie with his", weapon.name + ".");
+		console.log (player.name, "attacks a zombie with their", weapon.name + ".");
 		player.attack(weapon, zombies[0]);
 	}
 	if (zombies.length > 0) {
-		console.log(player.name, "needs to locate more weapons before he can save his family!!!");
+		console.log(player.name, "needs to locate more weapons before he can save their family!!!");
 	} else {
-		console.log(player.name, "has just saved his family (for the moment)!");		
+		console.log(player.name, "has just saved their family, and there was much rejoicing (for the moment)!");		
 	}
 };
 
 try {
 	var player = new player("Shawn"),
+		oldRounds = player.rangedWeapon.currentAmmo;
 		roundsLoaded = player.loadWeapon(true);
 	createZombies();
-	debugLog(zombies.length, "number of zombies in array. number defined" + numZombies);
+	debugLog(zombies.length, "zombies created out of " + numZombies);
 	
 	introText = ["The zombie apocalypse has just broken out.", player.name + "just arrived home from work.",  player.name,
 				"rummages through their car\nand locates a revolver, and a cricket bat that they can use to defend their family.",
-				"The revolver has", player.rangedWeapon.currentAmmo, "round in it,\nand you load another", roundsLoaded,
-				multiples(roundsLoaded, "round"), "you had in a box in the glove compartment (leaving you with",
-				player.numAmmo, (player.numAmmo === 1) ? "round" : "rounds", ").You see", numZombies, multiples(numZombies, "zombie"),
+				"The revolver has", oldRounds, multiples(oldRounds, "round"), "in it,\nand you load another", roundsLoaded,
+				multiples(roundsLoaded, "round"), "you had in a box in the glove compartment ( leaving you with",
+				player.numAmmo, multiples(player.numAmmo, "round"), ").You see", numZombies, multiples(numZombies, "zombie"),
 				"\nattempting to break in and eat your family's brains.", player.name, "must kill the zombies before they can harm the", player.numFamily,
 				"family", (player.numFamily - 1 >= 2) ? "members" : "member", "\ninside your home.", player.name,
 				"grabs their weapons and begins the assault."];

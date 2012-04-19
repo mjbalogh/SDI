@@ -9,7 +9,7 @@
 // define namespace, $, and protect undefined
 (function(ns, $, undefined){
 	// private
-	var jsonData = $.parse(json);
+	// var jsonData = $.parse(json);
 	var getIndexByName = function (array, name) {
 		var len = array.length;
 		for (var i = 0; i < len; i++) {
@@ -20,11 +20,11 @@
 	};
 
 	// public
-	ns.company = function (name, recruiter, positions) {
+	ns.company = function (name, recruiter) {
 		if (undefined === name || undefined === recruiter) return undefined;
 		this.name = name;
 		this.recruiter = recruiter;
-		this.positions = positions || [];
+		this.positions = [];
 		this.getName = function () { return this.name; };
 		this.getRecruiter = function () { return this.recruiter; };
 		this.getPositions = function () { return this.positions; };
@@ -37,8 +37,8 @@
 				name: name,
 				location: location,
 				salary: salary || undefined,
-				have_applied = {},
-				interview = []
+				have_applied: {},
+				interview: []
 			};
 			this.positions.push(temp);
 		};
@@ -50,7 +50,7 @@
 			
 			apply = {
 				cover_letter: cover_letter || false,
-				resume: resume || false;
+				resume: resume || false,
 				application_form: application_form || false
 			};
 			this.positions[n].has_applied.push(apply);
@@ -79,6 +79,42 @@
 	ns.Person = function (name) {
 		if (undefined === name || '' === name) return undefined;
 		
+		// private
+		this.name = name;
+		this.companies = [];
+		this.loadCompanies = function (data) {
+			var jsond = $.parse(data), count = jsond.companies.length;
+			for (var i = 0; i < count; i++) {
+				var jcomp = jsond.companies[i],
+					comp = new ns.company(jcomp.name, jcomp.recruiter),
+					jclen = jcomp.positions.length;
+				if (jclen > 0) {
+					for (var j = 0; j < jclen; j++) {
+						var position = jcomp.positions[j], ilen = position.interviews.length;
+						comp.addPosition(position.name, position.location, position.salary);
+						if (position.have_applied !== {}) {
+							comp.applyForPosition(position.name, position.have_applied.cover_letter,
+								position.have_applied.resume, position.have_applied.application_form);
+						}
+							
+						if (ilen > 0) {
+							for (var k = 0; k < ilen; k++) {
+								var int = position.interviews[k];
+								comp.addInterview(position.name, int.date, int.time, int.interviewer);
+							}
+						}
+					}
+				}
+			}
+		};
 	};
-	
 } (window.sdi = window.sdi || {}, JSON));
+
+try {
+	var person = new sdi.Person("Michael Balogh");
+	person.loadCompanies(jsonc);
+	console.log(person.companies);
+}
+catch (e) {
+	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);
+}

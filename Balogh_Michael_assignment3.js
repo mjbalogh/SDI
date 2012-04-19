@@ -78,8 +78,7 @@
 	};
 	ns.Person = function (name) {
 		if (undefined === name || '' === name) return undefined;
-		this.name = name;
-		this.
+		
 	};
 	
 } (window.sdi = window.sdi || {}, JSON));

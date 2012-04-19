@@ -20,100 +20,110 @@
 	};
 
 	// public
-	ns.company = function (name, recruiter) {
+	
+	// ENUMS
+	ns.PAY_TYPE = Object.freeze({
+		hourly: 2080,
+		weekly: 52,
+		monthly: 12,
+		annual: 1
+	});
+	
+	ns.Company = function (name, recruiter) {
 		if (undefined === name || undefined === recruiter) return undefined;
-		this.name = name;
-		this.recruiter = recruiter;
-		this.positions = [];
-		this.getName = function () { return this.name; };
-		this.getRecruiter = function () { return this.recruiter; };
-		this.getPositions = function () { return this.positions; };
-		this.setRecruiter = function (recruiter) {
-			this.recruiter = name;
-		};
-		this.addPosition = function (name, location, salary) {
-			if (undefined === name || undefined === location) return -1;
-			var temp = {
-				name: name,
-				location: location,
-				salary: salary || undefined,
-				have_applied: {},
-				interview: []
-			};
-			this.positions.push(temp);
-		};
-		this.applyForPosition = function (position, cover_letter, resume, application_form) {
-			var n = getIndexByName(this.positions, position),
-				apply = {};
-			if (undefined === position || position === '') return;
-			if (-1 === n) return;
-			
-			apply = {
-				cover_letter: cover_letter || false,
-				resume: resume || false,
-				application_form: application_form || false
-			};
-			this.positions[n].has_applied.push(apply);
-		};
-		this.addInterview = function (position, date, time, interviewer) {
-			var n = getIndexByName(this.positions, position),
-				interview = {};
-			if (undefined === position || undefined === date || undefined === time || undefined === interviewer) return;
-			interview = {
-				date: date,
-				time: time,
-				interviewer: interviewer
-			};
-			this.positions[n].interviews.push(interview);
-		};
+		// private
+		var name = name;
+		var recruiter = recruiter;
+		var positions = [];
+		
+		// public
 		return {
-			getName: this.getName,
-			getRecruiter: this.getRecruiter,
-			getPositions: this.getPositions,
-			setRecruiter: this.setRecruiter,
-			addPosition: this.addPosition,
-			applyForPosition: this.applyForPosition,
-			addInterview: this.addInterview
+			getName: function () { return this.name; },
+			getRecruiter: function () { return this.recruiter; },
+			getPositions: function () { return this.positions; },
+			setRecruiter: function (recruiter) { this.recruiter = recruiter; },
+			addPosition: function (position, location, salary) {
+				if (undefined === name || undefined === location) return -1;
+				var temp = {
+					name: position,
+					location: location,
+					salary: salary || undefined,
+					have_applied: {},
+					interview: []
+				};
+				positions.push(temp);
+			},
+			applyForPosition: function (position, cover_letter, resume, application_form) {
+				var n = getIndexByName(positions, position), applied = positions[n].have_applied;
+				if (undefined === position || position === '' || -1 === n) return false;
+				
+				positions[n].have_applied.cover_letter = cover_letter || false;
+				positions[n].have_applied.resume = resume || false;
+				positions[n].have_applied.application_form = application_form || false;
+				return (positions[n].have_applied !== {});
+			},
+			addInterview: function (position, date, time, interviewer) {
+				var n = getIndexByName(this.positions, position),
+					interview;
+				if (undefined === position || undefined === date || undefined === time || undefined === interviewer) return;
+				interview = {
+					date: date,
+					time: time,
+					interviewer: interviewer
+				};
+				positions[n].interviews.push(interview);
+			},
+			setSalary: function (position, salary, is_hourly) {
+				var i = getIndexByName(positions, position),
+					pos = positions[i];
+					if (!is_hourly) {
+						
+					}
+			}
 		};
 	};
 	ns.Person = function (name) {
 		if (undefined === name || '' === name) return undefined;
 		
 		// private
-		this.name = name;
-		this.companies = [];
-		this.loadCompanies = function (data) {
-			var jsond = $.parse(data), count = jsond.companies.length;
-			for (var i = 0; i < count; i++) {
-				var jcomp = jsond.companies[i],
-					comp = new ns.company(jcomp.name, jcomp.recruiter),
-					jclen = jcomp.positions.length;
-				if (jclen > 0) {
-					for (var j = 0; j < jclen; j++) {
-						var position = jcomp.positions[j], ilen = position.interviews.length;
-						comp.addPosition(position.name, position.location, position.salary);
-						if (position.have_applied !== {}) {
-							comp.applyForPosition(position.name, position.have_applied.cover_letter,
-								position.have_applied.resume, position.have_applied.application_form);
-						}
+		var name = name;
+		var companies = [];
+		
+		return {
+			getName: function () { return name; },
+			getCompanies: function () { return this.companies; },
+			loadCompanies: function (data) {
+				var jsond = $.parse(data), count = jsond.companies.length;
+				for (var i = 0; i < count; i++) {
+					var jcomp = jsond.companies[i],
+						comp = ns.Company(jcomp.company_name, jcomp.recruiter),
+						jclen = jcomp.positions.length;
+					if (jclen > 0) {
+						for (var j = 0; j < jclen; j++) {
+							var position = jcomp.positions[j], ilen = position.interviews.length;
+							comp.addPosition(position.name, position.location, position.salary);
+							if (position.have_applied !== {}) {
+								comp.applyForPosition(position.name, position.have_applied.cover_letter,
+									position.have_applied.resume, position.have_applied.application_form);
+							}
 							
-						if (ilen > 0) {
-							for (var k = 0; k < ilen; k++) {
-								var int = position.interviews[k];
-								comp.addInterview(position.name, int.date, int.time, int.interviewer);
+							if (ilen > 0) {
+								for (var k = 0; k < ilen; k++) {
+									var int = position.interviews[k];
+									comp.addInterview(position.name, int.date, int.time, int.interviewer);
+								}
 							}
 						}
 					}
 				}
-			}
+			},
 		};
 	};
 } (window.sdi = window.sdi || {}, JSON));
 
 try {
-	var person = new sdi.Person("Michael Balogh");
+	var person = sdi.Person("Michael Balogh");
 	person.loadCompanies(jsonc);
-	console.log(person.companies);
 }
 catch (e) {
 	console.log(e.message, "in file:", e.fileName, "on line:", e.lineNumber);

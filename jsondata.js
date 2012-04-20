@@ -1,8 +1,9 @@
-var json = {
+var json_orig = {
 	"companies": [
 		{
 			"company_name": 'GE',
 			"recruiter": 'James Gun',
+			"last_contact": 'Mon, 15 Apr 2012 18:52:00 GM',
 			"positions": [
 				{
 					"name": 'Information Security Governance Analyst',
@@ -31,6 +32,7 @@ var json = {
 		{
 			"company_name": 'Chevron',
 			"recruiter": 'James Shrieb',
+			"last_contact": 'Thu, 12 Apr 2012 22:56:00 GM',
 			"positions": [
 				{
 					"name": 'Senior Network Administrator',
@@ -48,6 +50,7 @@ var json = {
 		{
 			"company_name": 'ASI Federal Credit Union',
 			"recruiter": "Julie Schultz",
+			"last_contact": 'Wed, 18 Apr 2012 20:02:00 GM',
 			"positions": [
 				{
 					"name": 'Director of Information Security',
@@ -64,3 +67,5 @@ var json = {
 		}
 	]
 };
+
+var jsonc = JSON.stringify(json_orig);

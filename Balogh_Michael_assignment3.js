@@ -152,7 +152,7 @@ try {
 	person.loadCompanies(jsonc);
 	companies = person.getCompanies();
 	for (var i = 0; i < companies.length; i++) {
-		console.log('Loading stored jobs now...');
+		console.log('Reviewing stored jobs now...');
 		var comp = companies[i], date = comp.getLastContact();
 		if ((date.getDate() + 6) <= today.getDate()) {
 			var choice = sdi.getRandomBool();
@@ -167,6 +167,7 @@ try {
 			console.log('You have contacted', comp.name, 'on', comp.getLastContact().toDateString(), ".\n",
 				'Would you like to contact them again?');
 			if (sdi.getRandomBool()) {
+				console.log('Choice:', true);
 				console.log('Calling', comp.getRecruiter(), 'now...');
 				person.contactCompany(comp.name);
 			} else {

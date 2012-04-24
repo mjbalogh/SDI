@@ -35,8 +35,13 @@
 			};
 		};
 		
-		ns.title_case = function (string) {};
-		ns.inline_replace = function (string, char) {};
+		ns.title_case = function (string) {
+			// regexes to the rescue again. amazing how robust those little buggers are, isn't it?
+			return string.replace(/\w\S*/g, function(text) { return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase(); });
+		};
+		ns.inline_replace = function (string, char1, char2) {
+			return string.replace(/char1/g, char2);
+		};
 	} (ns.string = ns.validate || {}));
 	
 	// number
@@ -44,10 +49,21 @@
 		// private
 		
 		// public
-		ns.format_decimal_places = function () {};
-		ns.fuzzy_match = function () {};
-		ns.delta_dates = function () {};
-		ns.s2n = function () {};
+		ns.format_decimal_places = function (number, decimal_places) {
+			return number.toFixed(decimal_places);
+		};
+		ns.fuzzy_match = function (num1, num2, percent) {
+			// Should just add fuzzy matching to the Number.prototype, but...
+			var fuzzy = num2 * (percent/100);
+			return (num1 >= num2 - fuzzy || num1 <= num2 + fuzzy);
+		};
+		ns.delta_dates = function () {
+			
+		};
+		ns.s2n = function (string) {
+			var pattern = /^\S+\.\S+$/gi;
+			return (pattern.test(string)) ? parseFloat(string) : parseInt(string);
+		};
 	} (ns.number = ns.number || {}));
 	
 	// array
@@ -55,9 +71,40 @@
 		// private
 		
 		// public
-		ns.find_smallest_delta = function (array, number) {};
-		ns.sum_array_numbers = function (array) {};
-		ns.sort_array_by_key = function (array, key) {};
+		ns.find_smallest_delta = function (array, number) {
+			var l = 0, m, h = array.length;
+			if (array.length = 0) return -1;
+			
+			// edge cases:
+			if (number <= array[l]) return array[l];
+			if (number >= array[h]) return array[h];
+			
+			// do a binary search for it
+			while (l <= h) {
+				m = parseInt((l + h) / 2);
+				if (array[m] > number) {
+					h = --m;
+				} else if (array[m] < number) {
+					l = ++m;
+				} else {
+					return array[m];
+				}
+			}
+			return -1;
+		};
+		ns.sum_array_numbers = function (array) {
+			var summed = 0;
+			for (var i in array) {
+				if (typeof(i) === 'number') {
+					summed += i;
+				}
+			}
+			return summed;
+		};
+		ns.sort_array_by_key = function (array, key) {
+			var func = function (a, b) { return (a[key] < b[key]) ? -1 : (b[key] < a[key]) ? 1 : 0; };
+			return array.sort(func);
+		};
 	} (ns.array = ns.array || {}));
 	
 	// MAKE-UP Output : deliverable 1

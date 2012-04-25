@@ -57,8 +57,17 @@
 			var fuzzy = num2 * (percent/100);
 			return (num1 >= num2 - fuzzy || num1 <= num2 + fuzzy);
 		};
-		ns.delta_dates = function () {
+		ns.delta_dates = function (date1, date2) {
+			var delta, days, hours;
+			if (date1 !instanceof Date || date2 !instanceof Date) throw('function arguments must be date objects');
 			
+			// round to the nearest minute [3,600,000 milliseconds/hour]
+			delta = Math.round(Math.abs((date1.valueOf() - date2.valueOf()) / 3600000));
+			days = parseInt(delta / 24);
+			hours = delta % 24;
+			
+			return 'There are '  + (days > 0) ? days + ' days, and ' : '' + hours + 
+				' hours between ' + date1.toUTCString() + ' and ' date2.toUTCString() + '.';
 		};
 		ns.s2n = function (string) {
 			var pattern = /^\S+\.\S+$/gi;
